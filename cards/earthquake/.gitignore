@@ -1,0 +1,40 @@
+node_modules/
+
+# Build outputs
+build/
+dist/
+out/
+coverage/
+
+# Caches and temp
+.cache/
+.parcel-cache/
+.eslintcache
+.tmp/
+.tmp*
+.temp/
+logs/
+*.log
+*.tgz
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+
+# OS/Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Deploy/hosting
+.netlify/
+.vercel/

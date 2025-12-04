@@ -1,0 +1,6 @@
+/* Minimal App level styles referenced by src/App.js */
+.App {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1rem;
+}

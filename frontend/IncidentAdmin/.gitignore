@@ -1,0 +1,70 @@
+# Node
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Vite / build
+dist/
+.build/
+.vite/
+.vite*/
+.cache/
+
+# Environment files
+.env
+.env.*.local
+.env.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor/IDE
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# TypeScript
+*.tsbuildinfo
+
+# Coverage
+coverage/
+
+# Misc
+/.pnp
+.pnp.js
+
+# Local history or temp files created by editors
+*.swp
+*~
+~$*
+
+# Lockfiles (optional — keep if you want to track lockfile)
+# package-lock.json
+# yarn.lock
+
+# OneDrive / Windows temporary files
+~$*
+*.lnk
+
+# Ignore build artifacts from figma/exports (if any)
+*.cache
+public/build/
+
+# JetBrains
+out/
+.idea/
+
+# Optional: ignore local node_modules caches from package managers
+node_modules/.vite/
+
+# End of file
