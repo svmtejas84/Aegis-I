@@ -33,7 +33,7 @@ Then edit `.env` and fill in your credentials:
 # MongoDB - Use either local or cloud
 MONGODB_URI=mongodb://localhost:27017/aegis
 # OR for MongoDB Atlas:
-# MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/aegis
+# MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/aegis
 
 # JWT Secret (change this!)
 JWT_SECRET=your-super-secret-key-here-make-it-long-and-random

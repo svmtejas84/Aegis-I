@@ -22,8 +22,21 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Don't parse body for /api/incidents POST (handled by multer)
+app.use((req, res, next) => {
+  if (req.path === '/api/incidents' && req.method === 'POST') {
+    return next();
+  }
+  express.json()(req, res, next);
+});
+
+app.use((req, res, next) => {
+  if (req.path === '/api/incidents' && req.method === 'POST') {
+    return next();
+  }
+  express.urlencoded({ extended: true })(req, res, next);
+});
 
 // Request logging (development)
 if (config.nodeEnv === 'development') {

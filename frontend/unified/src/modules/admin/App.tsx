@@ -104,11 +104,20 @@ export default function App() {
 
       if (response.ok) {
         const data = await response.json();
-        // Update local state
-        setSelectedIncident(data.data);
-        setIncidents(prev => prev.map(inc => 
-          inc._id === data.data._id ? data.data : inc
-        ));
+        console.log('✅ Status updated successfully:', data);
+        
+        // Remove the incident from the list (it's no longer pending)
+        const updatedIncidents = incidents.filter(inc => inc._id !== selectedIncident._id);
+        setIncidents(updatedIncidents);
+        
+        // Close the modal and select the next incident if available
+        if (updatedIncidents.length > 0) {
+          setSelectedIncident(updatedIncidents[0]);
+        } else {
+          setSelectedIncident(null);
+        }
+        
+        console.log(`🎯 Incident ${newStatus.toLowerCase()}. Remaining incidents:`, updatedIncidents.length);
       } else {
         console.error('Failed to update status');
       }
