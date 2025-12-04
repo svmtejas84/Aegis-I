@@ -1,0 +1,91 @@
+/* src/components/Scrollytelling.css */
+
+/* * 1. The Main Container 
+ * This element's height is set by JS (e.g., 500vh) 
+ * It acts as the scrollable "track" for the entire component.
+ */
+.scrollytelling-container {
+  position: relative;
+  width: 100vw;
+}
+
+/* * 2. The Video Wrapper 
+ * This element sticks to the viewport while the user scrolls 
+ * down the main container.
+ */
+.scrollytelling-video-wrapper {
+  position: sticky;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden; /* Hide any video overflow */
+}
+
+/* * 3. The Video Element
+ * This scales to fill the wrapper, covering the viewport.
+ */
+.scrollytelling-video-wrapper video {
+  width: 100vw;
+  height: 100vh;
+  object-fit: cover; /* Ensures video covers the screen without distortion */
+}
+
+/* * 4. The Chapter Overlay
+ * This sticks on top of the video and holds the text content.
+ * Using flexbox to center the text box within it.
+ */
+.scrollytelling-chapter-overlay {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  /* Places the text box */
+  display: flex;
+  justify-content: flex-start; /* Aligns text box to the left */
+  align-items: center; /* Aligns text box vertically center */
+  padding: 0 5vw; /* Adds 5% padding on the left/right */
+  
+  /* Ensures this is on top of the video wrapper (which is also sticky) */
+  /* This value needs to be higher than the video wrapper if they were siblings, 
+     but as a sibling of the video wrapper (both inside the container), 
+     its natural stacking order should be fine. We add it for safety. */
+  z-index: 10;
+}
+
+/* * 5. The Text Box
+ * This is the styled box holding the title and paragraph.
+ */
+.chapter-text {
+  background-color: rgba(0, 0, 0, 0.65);
+  color: #fff;
+  padding: 20px 26px;
+  border-radius: 8px;
+  max-width: 540px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+  border-left: 4px solid #e45b4a;
+}
+
+.chapter-text h2 {
+  margin: 0 0 8px 0;
+  font-size: 1.6rem;
+}
+
+.chapter-text p {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+/* * 6. Fade Animations
+ * Controls the fade-in/out as chapters become active/inactive.
+ */
+.fade-in {
+  opacity: 1; 
+  transition: opacity 0.4s ease-in; 
+}
+
+.fade-out {
+  opacity: 0; 
+  transition: opacity 0.3s ease-out; 
+}
