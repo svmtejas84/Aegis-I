@@ -90,15 +90,27 @@ export default function App() {
         (error) => {
           console.error('Geolocation error:', error);
           setIsGettingLocation(false);
-          toast.error('Unable to get your location. Using default location.');
-          // Default location (San Francisco)
-          setUserLocation([-122.4194, 37.7749]);
+          
+          let errorMessage = 'Unable to get your location.';
+          if (error.code === error.PERMISSION_DENIED) {
+            errorMessage = 'Please enable location permission and try again.';
+          } else if (error.code === error.POSITION_UNAVAILABLE) {
+            errorMessage = 'Location information is unavailable. Please try again.';
+          } else if (error.code === error.TIMEOUT) {
+            errorMessage = 'Location request timed out. Please try again.';
+          }
+          
+          toast.error(errorMessage);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 30000,
+          maximumAge: 0
         }
       );
     } else {
       setIsGettingLocation(false);
-      toast.error('Geolocation not supported. Using default location.');
-      setUserLocation([-122.4194, 37.7749]);
+      toast.error('Geolocation not supported by your browser.');
     }
   };
 

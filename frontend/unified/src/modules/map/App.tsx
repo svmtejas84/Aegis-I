@@ -94,8 +94,22 @@ export default function App() {
         setUserLocation([latitude, longitude]);
         setLocationAccuracy(accuracy);
         setIsLoadingLocation(false);
+        setLocationError(null);
+        
+        // Format accuracy message based on accuracy value
+        let accuracyMessage = 'Your location has been detected';
+        if (accuracy < 10) {
+          accuracyMessage = 'High precision location detected (±' + Math.round(accuracy) + 'm)';
+        } else if (accuracy < 50) {
+          accuracyMessage = 'Good location accuracy (±' + Math.round(accuracy) + 'm)';
+        } else if (accuracy < 200) {
+          accuracyMessage = 'Location detected with standard accuracy (±' + Math.round(accuracy) + 'm)';
+        } else {
+          accuracyMessage = 'Location detected (±' + Math.round(accuracy) + 'm - lower accuracy)';
+        }
+        
         toast.success('Location Found', {
-          description: `Your location has been detected (±${Math.round(accuracy)}m accuracy)`
+          description: accuracyMessage
         });
 
         // Start watching position for live updates
@@ -107,13 +121,13 @@ export default function App() {
         
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            errorMessage = 'Location access denied. Please enable location permissions.';
+            errorMessage = 'Location permission denied. Please enable location permissions in browser settings.';
             break;
           case error.POSITION_UNAVAILABLE:
-            errorMessage = 'Location information is unavailable.';
+            errorMessage = 'Location information is unavailable. Please try again.';
             break;
           case error.TIMEOUT:
-            errorMessage = 'Location request timed out.';
+            errorMessage = 'Location request timed out. Please try again.';
             break;
         }
         
@@ -124,7 +138,7 @@ export default function App() {
       },
       {
         enableHighAccuracy: true,
-        timeout: 10000,
+        timeout: 30000,
         maximumAge: 0
       }
     );
