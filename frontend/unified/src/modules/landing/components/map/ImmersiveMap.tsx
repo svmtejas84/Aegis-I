@@ -26,7 +26,10 @@ export function ImmersiveMap({ markers, showControls = true, center = [37.7749, 
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  const userMarkerRef = useRef<L.CircleMarker | null>(null);
+  const watchIdRef = useRef<number | null>(null);
   const [activeMarker, setActiveMarker] = useState<string | null>(null);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -79,6 +82,76 @@ export function ImmersiveMap({ markers, showControls = true, center = [37.7749, 
     }
   }, [center, zoom]);
 
+  // Watch user location and update marker in real-time
+  useEffect(() => {
+    if (!navigator.geolocation || !leafletMapRef.current) return;
+
+    const successCallback = (position: GeolocationPosition) => {
+      const { latitude, longitude, accuracy } = position.coords;
+      const newLocation: [number, number] = [latitude, longitude];
+      
+      setUserLocation(newLocation);
+
+      // Remove old marker if exists
+      if (userMarkerRef.current) {
+        leafletMapRef.current?.removeLayer(userMarkerRef.current);
+      }
+
+      // Create or update location circle marker
+      const circleMarker = L.circleMarker([latitude, longitude], {
+        radius: 10,
+        fillColor: '#3b82f6',
+        color: '#1e40af',
+        weight: 3,
+        opacity: 1,
+        fillOpacity: 0.8,
+        className: 'location-pulse'
+      }).addTo(leafletMapRef.current!);
+
+      // Add accuracy circle
+      L.circle([latitude, longitude], {
+        radius: accuracy || 50,
+        fillColor: 'transparent',
+        color: '#93c5fd',
+        weight: 1,
+        opacity: 0.5,
+        dashArray: '5, 5'
+      }).addTo(leafletMapRef.current!);
+
+      userMarkerRef.current = circleMarker;
+
+      // Center map on user location
+      leafletMapRef.current?.setView([latitude, longitude], zoom || 13, {
+        animate: true,
+        duration: 0.5
+      });
+    };
+
+    const errorCallback = (error: GeolocationPositionError) => {
+      console.warn('Geolocation error:', error);
+    };
+
+    const options: PositionOptions = {
+      enableHighAccuracy: true,
+      timeout: 30000,
+      maximumAge: 0
+    };
+
+    // Watch position for continuous updates
+    watchIdRef.current = navigator.geolocation.watchPosition(
+      successCallback,
+      errorCallback,
+      options
+    );
+
+    // Cleanup
+    return () => {
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+      }
+    };
+  }, [zoom]);
+
   useEffect(() => {
     if (!leafletMapRef.current) return;
 
@@ -88,6 +161,99 @@ export function ImmersiveMap({ markers, showControls = true, center = [37.7749, 
 
     // Markers disabled - no markers will be displayed
   }, [markers]);
+
+  // Fetch and display incidents
+  useEffect(() => {
+    const fetchIncidents = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/incidents', {
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const incidents = data.data || [];
+
+        // Remove old incident markers
+        markersRef.current.forEach(marker => marker.remove());
+        markersRef.current = [];
+
+        // Add new incident markers
+        incidents.forEach((incident: any) => {
+          if (!incident.location?.coordinates) return;
+
+          const [lng, lat] = incident.location.coordinates;
+          
+          // Create custom HTML icon based on incident type
+          const getIncidentColor = (type: string) => {
+            const colors: Record<string, string> = {
+              earthquake: '#ef4444',
+              cyclone: '#8b5cf6',
+              tsunami: '#06b6d4',
+              landslide: '#f59e0b',
+              flood: '#3b82f6',
+              heatwave: '#dc2626',
+              nuclear: '#7c3aed',
+              default: '#fdc700'
+            };
+            return colors[type.toLowerCase()] || colors.default;
+          };
+
+          const color = getIncidentColor(incident.type);
+          
+          const icon = L.divIcon({
+            html: `
+              <div style="
+                background-color: ${color};
+                border: 3px solid white;
+                border-radius: 50%;
+                width: 30px;
+                height: 30px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 0 3px rgba(255,255,255,0.4);
+                animation: incidentGlow 1.5s ease-in-out infinite;
+              ">
+                <span style="color: white; font-size: 16px; font-weight: bold;">!</span>
+              </div>
+            `,
+            iconSize: [30, 30],
+            className: 'incident-marker'
+          });
+
+          const marker = L.marker([lat, lng], { icon }).addTo(leafletMapRef.current!);
+
+          // Add popup
+          marker.bindPopup(`
+            <div style="min-width: 200px; text-align: left;">
+              <h3 style="margin: 0 0 8px 0; color: ${color}; font-weight: bold;">
+                ${incident.type.charAt(0).toUpperCase() + incident.type.slice(1)}
+              </h3>
+              <p style="margin: 0 0 6px 0; color: #666; font-size: 12px;">
+                Status: <strong>${incident.status}</strong>
+              </p>
+              <p style="margin: 0 0 6px 0; color: #666; font-size: 12px;">
+                Location: ${lat.toFixed(4)}, ${lng.toFixed(4)}
+              </p>
+              ${incident.additionalNotes ? `<p style="margin: 0; color: #666; font-size: 12px;">${incident.additionalNotes}</p>` : ''}
+            </div>
+          `);
+
+          markersRef.current.push(marker);
+        });
+      } catch (error) {
+        console.warn('Failed to fetch incidents:', error);
+      }
+    };
+
+    fetchIncidents();
+    
+    // Poll for incidents every 15 seconds
+    const interval = setInterval(fetchIncidents, 15000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleZoomIn = () => {
     leafletMapRef.current?.zoomIn();
@@ -187,6 +353,19 @@ export function ImmersiveMap({ markers, showControls = true, center = [37.7749, 
 
         .location-pulse {
           animation: locationPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        .incident-marker {
+          animation: scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes incidentGlow {
+          0%, 100% {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 0 0 rgba(255,255,255,0.7);
+          }
+          50% {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3), 0 0 0 4px rgba(255,255,255,0);
+          }
         }
 
         .leaflet-pane,
