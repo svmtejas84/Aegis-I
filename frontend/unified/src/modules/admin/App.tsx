@@ -47,13 +47,18 @@ export default function App() {
           console.log('✅ Received data:', data);
           console.log('📊 Number of incidents:', data.data?.length || 0);
           
-          setIncidents(data.data || []);
+          // Filter out resolved incidents - only show Pending and Acknowledged
+          const activeIncidents = (data.data || []).filter((inc: Incident) => 
+            inc.status === 'Pending' || inc.status === 'Acknowledged'
+          );
+          
+          setIncidents(activeIncidents);
           // Select first incident by default
-          if (data.data && data.data.length > 0) {
-            setSelectedIncident(data.data[0]);
-            console.log('🎯 Selected first incident:', data.data[0].type);
+          if (activeIncidents.length > 0) {
+            setSelectedIncident(activeIncidents[0]);
+            console.log('🎯 Selected first incident:', activeIncidents[0].type);
           } else {
-            console.log('⚠️ No incidents found in response');
+            console.log('⚠️ No active incidents found');
           }
         } else {
           console.error('❌ Failed to fetch incidents. Status:', response.status);
@@ -92,6 +97,7 @@ export default function App() {
     
     setIsUpdating(true);
     try {
+      console.log(`🔄 Updating incident ${selectedIncident._id} to status: ${newStatus}`);
       const response = await fetch(`http://localhost:5000/api/incidents/${selectedIncident._id}`, {
         method: 'PUT',
         headers: {
@@ -102,18 +108,41 @@ export default function App() {
         body: JSON.stringify({ status: newStatus }),
       });
 
+      console.log('📡 Response status:', response.status, response.statusText);
+      
       if (response.ok) {
         const data = await response.json();
-        // Update local state
-        setSelectedIncident(data.data);
-        setIncidents(prev => prev.map(inc => 
-          inc._id === data.data._id ? data.data : inc
-        ));
+        console.log('✅ Status updated successfully:', data);
+        
+        if (newStatus === 'Resolved') {
+          // Remove resolved incidents from the list
+          const updatedIncidents = incidents.filter(inc => inc._id !== selectedIncident._id);
+          setIncidents(updatedIncidents);
+          
+          // Select the next incident if available
+          if (updatedIncidents.length > 0) {
+            setSelectedIncident(updatedIncidents[0]);
+          } else {
+            setSelectedIncident(null);
+          }
+          
+          console.log(`🎯 Incident resolved and removed. Remaining incidents:`, updatedIncidents.length);
+        } else {
+          // For Acknowledged status, just update the incident in place
+          const updatedIncidents = incidents.map(inc => 
+            inc._id === data.data._id ? data.data : inc
+          );
+          setIncidents(updatedIncidents);
+          setSelectedIncident(data.data);
+          
+          console.log(`🎯 Incident acknowledged. Status updated to: ${newStatus}`);
+        }
       } else {
-        console.error('Failed to update status');
+        const errorText = await response.text();
+        console.error('❌ Failed to update status:', response.status, errorText);
       }
     } catch (error) {
-      console.error('Error updating status:', error);
+      console.error('❌ Error updating status:', error);
     } finally {
       setIsUpdating(false);
     }
@@ -171,6 +200,7 @@ export default function App() {
 
   const incident = selectedIncident || incidents[0];
   const statusStyle = getStatusStyle(incident.status);
+  const incidentIndex = incidents.findIndex(inc => inc._id === incident._id) + 1;
   const imageUrl = incident.photo?.data 
     ? `data:${incident.photo.contentType};base64,${incident.photo.data}`
     : 'https://images.unsplash.com/photo-1639369488374-561b5486177d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxob3VzZSUyMGZpcmUlMjBzbW9rZXxlbnwxfHx8fDE3NjEzMjQzMjV8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral';
@@ -181,7 +211,7 @@ export default function App() {
         {/* Title with incident selector */}
         <div className="flex items-center justify-between mb-12">
           <h1 className="text-[#7ee5ff] tracking-[0.4px] text-[36px] leading-[36px] font-medium">
-            Incident Detail View
+            Incident #{incidentIndex} - Detail View
           </h1>
           {incidents.length > 1 && (
             <select
