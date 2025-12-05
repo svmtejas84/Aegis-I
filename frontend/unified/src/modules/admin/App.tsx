@@ -26,6 +26,12 @@ export default function App() {
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertData, setAlertData] = useState({
+    title: '',
+    message: '',
+    type: 'warning' as 'emergency' | 'warning' | 'info' | 'advisory'
+  });
 
   // Fetch incidents from backend
   useEffect(() => {
@@ -148,6 +154,42 @@ export default function App() {
     }
   };
 
+  // Send broadcast alert
+  const sendAlert = async () => {
+    if (!alertData.title || !alertData.message) {
+      alert('Please fill in title and message');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5000/api/alerts/broadcast', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: alertData.title,
+          message: alertData.message,
+          type: alertData.type,
+          isBroadcast: true
+        }),
+      });
+
+      if (response.ok) {
+        console.log('✅ Alert sent successfully');
+        setShowAlertModal(false);
+        setAlertData({ title: '', message: '', type: 'warning' });
+        alert('Alert broadcasted successfully!');
+      } else {
+        console.error('❌ Failed to send alert');
+        alert('Failed to send alert');
+      }
+    } catch (error) {
+      console.error('❌ Error sending alert:', error);
+      alert('Error sending alert');
+    }
+  };
+
   // Get status color and styling
   const getStatusStyle = (status: string) => {
     switch (status) {
@@ -208,27 +250,35 @@ export default function App() {
   return (
     <div className="min-h-screen bg-neutral-950 flex items-center justify-center p-4 md:p-8">
       <div className="w-full max-w-[955px] bg-[#1a1a1a] rounded-2xl p-12 shadow-[0px_25px_50px_-12px_rgba(0,0,0,0.25)]">
-        {/* Title with incident selector */}
+        {/* Title with incident selector and alert button */}
         <div className="flex items-center justify-between mb-12">
           <h1 className="text-[#7ee5ff] tracking-[0.4px] text-[36px] leading-[36px] font-medium">
             Incident #{incidentIndex} - Detail View
           </h1>
-          {incidents.length > 1 && (
-            <select
-              value={incident._id}
-              onChange={(e) => {
-                const selected = incidents.find(inc => inc._id === e.target.value);
-                setSelectedIncident(selected || null);
-              }}
-              className="bg-[#2a2a2a] text-white px-4 py-2 rounded-lg border border-[#3a3a3a]"
+          <div className="flex items-center gap-4">
+            {incidents.length > 1 && (
+              <select
+                value={incident._id}
+                onChange={(e) => {
+                  const selected = incidents.find(inc => inc._id === e.target.value);
+                  setSelectedIncident(selected || null);
+                }}
+                className="bg-[#2a2a2a] text-white px-4 py-2 rounded-lg border border-[#3a3a3a]"
+              >
+                {incidents.map((inc, idx) => (
+                  <option key={inc._id} value={inc._id}>
+                    Incident #{idx + 1} - {inc.type.charAt(0).toUpperCase() + inc.type.slice(1)}
+                  </option>
+                ))}
+              </select>
+            )}
+            <button
+              onClick={() => setShowAlertModal(true)}
+              className="bg-[#FF1B5E] hover:bg-[#e01650] text-white px-6 py-2 rounded-lg transition-colors duration-200 shadow-lg"
             >
-              {incidents.map((inc, idx) => (
-                <option key={inc._id} value={inc._id}>
-                  Incident #{idx + 1} - {inc.type.charAt(0).toUpperCase() + inc.type.slice(1)}
-                </option>
-              ))}
-            </select>
-          )}
+              📢 Send Alert
+            </button>
+          </div>
         </div>
 
         {/* Image Grid */}
@@ -356,6 +406,71 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      {/* Alert Modal */}
+      {showAlertModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#1a1a1a] rounded-2xl p-8 max-w-md w-full shadow-2xl border border-[#3a3a3a]">
+            <h2 className="text-[#7ee5ff] text-2xl font-medium mb-6">Send Alert</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="text-white text-sm mb-2 block">Alert Type</label>
+                <select
+                  value={alertData.type}
+                  onChange={(e) => setAlertData({ ...alertData, type: e.target.value as any })}
+                  className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg border border-[#3a3a3a]"
+                >
+                  <option value="emergency">🚨 Emergency</option>
+                  <option value="warning">⚠️ Warning</option>
+                  <option value="info">ℹ️ Info</option>
+                  <option value="advisory">📋 Advisory</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-white text-sm mb-2 block">Title</label>
+                <input
+                  type="text"
+                  value={alertData.title}
+                  onChange={(e) => setAlertData({ ...alertData, title: e.target.value })}
+                  placeholder="e.g., Flash Flood Warning"
+                  className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg border border-[#3a3a3a] placeholder-[#666]"
+                />
+              </div>
+
+              <div>
+                <label className="text-white text-sm mb-2 block">Message</label>
+                <textarea
+                  value={alertData.message}
+                  onChange={(e) => setAlertData({ ...alertData, message: e.target.value })}
+                  placeholder="Enter alert message..."
+                  rows={4}
+                  className="w-full bg-[#2a2a2a] text-white px-4 py-3 rounded-lg border border-[#3a3a3a] placeholder-[#666] resize-none"
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <button
+                  onClick={sendAlert}
+                  className="flex-1 bg-[#FF1B5E] hover:bg-[#e01650] text-white px-6 py-3 rounded-lg transition-colors duration-200 shadow-lg"
+                >
+                  Send Alert
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAlertModal(false);
+                    setAlertData({ title: '', message: '', type: 'warning' });
+                  }}
+                  className="flex-1 bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white px-6 py-3 rounded-lg transition-colors duration-200 border border-[#3a3a3a]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -28,6 +28,7 @@ export function ImmersiveMap({ markers, showControls = true, center = [37.7749, 
   const leafletMapRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
   const incidentMarkersRef = useRef<L.Marker[]>([]);
+  const alertMarkersRef = useRef<L.Marker[]>([]);
   const zonesRef = useRef<L.Polygon[]>([]);
   const userMarkerRef = useRef<L.CircleMarker | null>(null);
   const watchIdRef = useRef<number | null>(null);
@@ -395,6 +396,128 @@ export function ImmersiveMap({ markers, showControls = true, center = [37.7749, 
     
     // Poll for incidents every 15 seconds
     const interval = setInterval(fetchIncidents, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Fetch and display alerts
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/alerts/broadcast', {
+          headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!response.ok) return;
+
+        const data = await response.json();
+        const alerts = data.data || [];
+
+        // Remove old alert markers
+        alertMarkersRef.current.forEach(marker => marker.remove());
+        alertMarkersRef.current = [];
+
+        // Add new alert markers (display at center with special styling)
+        alerts.forEach((alert: any, index: number) => {
+          if (!leafletMapRef.current) return;
+
+          // Get alert type color
+          const getAlertColor = (type: string) => {
+            const colors: Record<string, string> = {
+              emergency: '#dc2626',
+              warning: '#f59e0b',
+              info: '#3b82f6',
+              advisory: '#8b5cf6'
+            };
+            return colors[type] || colors.info;
+          };
+
+          const color = getAlertColor(alert.type);
+
+          // Create alert icon with animated border
+          const icon = L.divIcon({
+            html: `
+              <div style="
+                position: relative;
+                width: 50px;
+                height: 50px;
+              ">
+                <div style="
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  width: 50px;
+                  height: 50px;
+                  border-radius: 50%;
+                  background-color: ${color};
+                  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+                  opacity: 0.5;
+                "></div>
+                <div style="
+                  position: relative;
+                  background-color: ${color};
+                  border: 4px solid white;
+                  border-radius: 50%;
+                  width: 50px;
+                  height: 50px;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+                  z-index: 10;
+                ">
+                  <span style="color: white; font-size: 24px;">📢</span>
+                </div>
+              </div>
+            `,
+            iconSize: [50, 50],
+            className: 'alert-marker'
+          });
+
+          // Position alerts near the center with slight offset to avoid overlap
+          const map = leafletMapRef.current;
+          const centerLatLng = map.getCenter();
+          const offsetLat = (index * 0.005) - 0.01;
+          const offsetLng = (index * 0.005) - 0.01;
+
+          const marker = L.marker(
+            [centerLatLng.lat + offsetLat, centerLatLng.lng + offsetLng],
+            { icon }
+          ).addTo(map);
+
+          // Add popup with alert details
+          marker.bindPopup(`
+            <div style="min-width: 250px; text-align: left;">
+              <h3 style="margin: 0 0 8px 0; color: ${color}; font-weight: bold; font-size: 16px;">
+                📢 ${alert.title}
+              </h3>
+              <p style="margin: 0 0 6px 0; color: #666; font-size: 12px; text-transform: uppercase; font-weight: 600;">
+                ${alert.type}
+              </p>
+              <p style="margin: 0 0 8px 0; color: #333; font-size: 14px; line-height: 1.5;">
+                ${alert.message}
+              </p>
+              <p style="margin: 0; color: #999; font-size: 11px;">
+                ${new Date(alert.createdAt).toLocaleString()}
+              </p>
+            </div>
+          `);
+
+          // Auto-open popup for emergency alerts
+          if (alert.type === 'emergency') {
+            marker.openPopup();
+          }
+
+          alertMarkersRef.current.push(marker);
+        });
+      } catch (error) {
+        console.warn('Failed to fetch alerts:', error);
+      }
+    };
+
+    fetchAlerts();
+    
+    // Poll for alerts every 10 seconds
+    const interval = setInterval(fetchAlerts, 10000);
     return () => clearInterval(interval);
   }, []);
 
