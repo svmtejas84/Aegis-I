@@ -204,14 +204,6 @@ npm install
 - Check phone number format (+CountryCode)
 - Ensure sufficient Twilio credits
 
-##  License
-
-This project is licensed under the ISC License. See the [LICENSE](LICENSE) file for details.
-
-##  Team
-
-**AEGIS Team** - [RJScripts-24](https://github.com/RJScripts-24)
-
 ##  Acknowledgments
 
 - [Express.js](https://expressjs.com/) - Backend framework
@@ -225,12 +217,5 @@ This project is licensed under the ISC License. See the [LICENSE](LICENSE) file 
 
 
 
-## 🔗 Links
-
-- **Repository**: [https://github.com/RJScripts-24/Aegis](https://github.com/RJScripts-24/Aegis)
-- **Documentation**: See `docs/` folder
-- **Issues**: [Report a bug](https://github.com/RJScripts-24/Aegis/issues)
-
----
 
 
