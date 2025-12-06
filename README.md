@@ -1,7 +1,7 @@
 
 # AEGIS - Advanced Emergency Guidance and Incident System
 
-A consolidated emergency response platform with real-time incident reporting, live maps, alert broadcasts, and admin controls. The current build runs a unified frontend plus the backend API.
+Unified emergency response platform with real-time incident reporting, live maps, alert broadcasts (with end/deactivate), and admin controls. The current build runs a unified frontend plus the backend API.
 
 ## Table of Contents
 
@@ -13,21 +13,17 @@ A consolidated emergency response platform with real-time incident reporting, li
 - Configuration
 - Running the Application
 - API Overview
+- Notes
+- Documentation
 
 ## Features
 
-Core
-- Real-time incident reporting with photos and geo-tagging
+- Real-time incident reporting with photo upload and geo-tagging
 - Live maps with user location tracking and accuracy rings
-- Incident pins on landing and map views, refreshed automatically
-- Alert broadcasts from admin; alerts can be ended/deactivated and disappear from maps
-- Admin dashboard for acknowledge/resolve flow and incident filtering
+- Incident pins on landing and map views with auto-refresh
+- Broadcast alerts from admin; alerts can be ended/deactivated and disappear from maps
+- Admin dashboard for acknowledge/resolve workflow and filtering
 - Risk zones overlay on the map view
-
-Recent additions
-- Broadcast alerts are visible on landing and map views with animated pins
-- Admin can end active alerts (deactivate) from the dashboard
-- Continuous user location updates via watchPosition across maps
 
 ## Tech Stack
 
@@ -35,11 +31,11 @@ Backend
 - Node.js 18+, Express, MongoDB (Mongoose)
 - Socket.io for realtime updates
 - Multer for uploads; optional Cloudinary integration
-- Twilio SMS (optional; disabled without credentials)
+- Twilio SMS (optional; runs without credentials)
 
 Frontend (unified app)
 - React 18, Vite, Tailwind CSS
-- Leaflet for maps
+- Leaflet maps
 - Sonner for notifications
 
 ## Project Structure
@@ -152,118 +148,7 @@ Auth
 - Alert pins disappear automatically once deactivated via the admin end-alert action.
 - Live maps use browser geolocation; ensure location permissions are granted for full functionality.
 
-
-#### Get Incident by ID
-```http
-GET /api/incidents/:id
-Authorization: Bearer <token>
-```
-
-#### Update Incident Status
-```http
-PUT /api/incidents/:id/status
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "status": "resolved"
-}
-```
-
-### Alert Endpoints
-
-#### Create Alert
-```http
-POST /api/alerts
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "title": "Tsunami Warning",
-  "message": "Evacuate coastal areas immediately",
-  "disasterType": "tsunami",
-  "severity": "critical",
-  "region": "Coastal Area",
-  "sendSMS": true
-}
-```
-
-#### Get All Alerts
-```http
-GET /api/alerts
-```
-
-### Check-in Endpoints
-
-#### Create Check-in
-```http
-POST /api/check-ins
-Authorization: Bearer <token>
-Content-Type: application/json
-
-{
-  "status": "safe",
-  "location": {
-    "latitude": 28.6139,
-    "longitude": 77.2090
-  },
-  "message": "All family members safe"
-}
-```
-
-## 🔌 Socket.io Events
-
-### Client → Server
-
-- `join:incident` - Join incident room for updates
-- `join:alert` - Join alert notifications
-- `location:update` - Send live location update
-
-### Server → Client
-
-- `incident:new` - New incident reported
-- `incident:update` - Incident status updated
-- `alert:new` - New emergency alert
-- `location:update` - Live location update from field agent
-
-##  Testing
-
-### Database Verification
-
-```powershell
-# Connect to MongoDB
-mongosh
-
-# Switch to AEGIS database
-use aegis
-
-# View collections
-show collections
-
-# View incidents
-db.incidents.find().pretty()
-
-# View alerts
-db.alerts.find().pretty()
-
-# View users
-db.users.find().pretty()
-```
-
-### API Testing with cURL
-
-```powershell
-# Health check
-curl http://localhost:5000/health
-
-# Get incidents (no auth required for public view)
-curl http://localhost:5000/api/incidents
-
-# Get alerts
-curl http://localhost:5000/api/alerts
-```
-
-##  Documentation Files
+## Documentation
 
 - `QUICK_START.md` - Quick start guide
 - `SETUP_GUIDE.md` - Detailed setup instructions
@@ -274,17 +159,9 @@ curl http://localhost:5000/api/alerts
 - `IMPLEMENTATION_SUMMARY.md` - Implementation details
 - `FIXES_APPLIED_SUMMARY.md` - Bug fixes and updates
 
-##  Contributing
+## Contributing
 
-Contributions are welcome! Please follow these steps:
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-### Coding Standards
+Contributions are welcome.
 
 - Follow ESLint configurations
 - Write meaningful commit messages
