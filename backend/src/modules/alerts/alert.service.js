@@ -114,9 +114,41 @@ const getActiveBroadcastAlerts = async () => {
   }
 };
 
+/**
+ * @desc    Deactivate an alert by ID
+ * @param {string} alertId - The ID of the alert to deactivate.
+ * @returns {Promise<object>} A promise that resolves to the updated alert document.
+ */
+const deactivateAlert = async (alertId) => {
+  try {
+    const updatedAlert = await Alert.findByIdAndUpdate(
+      alertId,
+      { isActive: false },
+      { new: true }
+    );
+
+    if (!updatedAlert) {
+      throw new Error('Alert not found');
+    }
+
+    // Emit deactivation event via Socket.io
+    const io = getSocket();
+    if (io) {
+      io.to('Public').emit('alert-deactivated', alertId);
+      console.log('✅ Alert deactivation event emitted:', alertId);
+    }
+
+    return updatedAlert;
+  } catch (error) {
+    console.error('Error deactivating alert:', error);
+    throw new Error('Could not deactivate alert.');
+  }
+};
+
 module.exports = {
   getAllPublicAlerts,
   createAndBroadcastAlert,
   createBroadcastAlert,
   getActiveBroadcastAlerts,
+  deactivateAlert,
 };

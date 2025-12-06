@@ -1,405 +1,157 @@
-#  AEGIS - Advanced Emergency Guidance and Incident System
 
-[![License: ISC](https://img.shields.io/badge/License-ISC-blue.svg)](https://opensource.org/licenses/ISC)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
-[![React](https://img.shields.io/badge/React-18.3-blue.svg)](https://reactjs.org/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-6.0+-green.svg)](https://www.mongodb.com/)
+# AEGIS - Advanced Emergency Guidance and Incident System
 
-A comprehensive emergency response and disaster management system that enables real-time incident reporting, live location tracking, emergency alerts, and coordinated response operations.
+A consolidated emergency response platform with real-time incident reporting, live maps, alert broadcasts, and admin controls. The current build runs a unified frontend plus the backend API.
 
-## 📋 Table of Contents
+## Table of Contents
 
-- [Features](#-features)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Prerequisites](#-prerequisites)
-- [Installation](#-installation)
-- [Configuration](#-configuration)
-- [Running the Application](#-running-the-application)
-- [Modules](#-modules)
-- [API Documentation](#-api-documentation)
-- [Contributing](#-contributing)
-- [License](#-license)
+- Features
+- Tech Stack
+- Project Structure
+- Prerequisites
+- Installation
+- Configuration
+- Running the Application
+- API Overview
 
 ## Features
 
-### Core Functionality
--  **Real-time Incident Reporting** - Citizens can report emergencies with photos, location, and details
--  **Live Location Tracking** - Real-time GPS tracking for field agents and emergency responders
--  **Interactive Maps** - Visualize incidents, risk zones, and resources on dynamic maps
--  **Emergency Alerts** - Broadcast alerts to subscribers via SMS and web notifications
--  **Mission Management** - Coordinate emergency response teams and operations
--  **Check-in System** - Safety check-ins for citizens in affected areas
--  **Admin Dashboard** - Monitor and manage incidents, alerts, and operations
+Core
+- Real-time incident reporting with photos and geo-tagging
+- Live maps with user location tracking and accuracy rings
+- Incident pins on landing and map views, refreshed automatically
+- Alert broadcasts from admin; alerts can be ended/deactivated and disappear from maps
+- Admin dashboard for acknowledge/resolve flow and incident filtering
+- Risk zones overlay on the map view
 
-### Disaster Types Supported
--  **Tsunami** - Tsunami warnings and evacuation guidance
--  **Cyclone** - Cyclone tracking and safety protocols
--  **Heatwaves** - Heat advisory and safety measures
--  **Chemical Hazards** - Chemical spill response and containment
--  **Nuclear Emergencies** - Radiation safety and evacuation
--  **Landslides** - Landslide warnings and prevention
--  **Urban Floods** - Flood monitoring and response
--  **Earthquakes** - Seismic activity tracking and safety
+Recent additions
+- Broadcast alerts are visible on landing and map views with animated pins
+- Admin can end active alerts (deactivate) from the dashboard
+- Continuous user location updates via watchPosition across maps
 
-##  Tech Stack
+## Tech Stack
 
-### Backend
-- **Runtime**: Node.js (v18+)
-- **Framework**: Express.js
-- **Database**: MongoDB with Mongoose ODM
-- **Real-time**: Socket.io
-- **Authentication**: JWT (JSON Web Tokens)
-- **File Upload**: Multer + Cloudinary
-- **SMS Service**: Twilio
-- **Security**: bcryptjs, CORS
+Backend
+- Node.js 18+, Express, MongoDB (Mongoose)
+- Socket.io for realtime updates
+- Multer for uploads; optional Cloudinary integration
+- Twilio SMS (optional; disabled without credentials)
 
-### Frontend
-- **Framework**: React 18.3
-- **Build Tool**: Vite 6.3
-- **UI Library**: Radix UI
-- **Styling**: Tailwind CSS
-- **Maps**: Leaflet & React Leaflet
-- **Routing**: React Router DOM
-- **State Management**: React Hooks
-- **Notifications**: Sonner (Toast notifications)
-- **Charts**: Recharts
-- **HTTP Client**: Fetch API
+Frontend (unified app)
+- React 18, Vite, Tailwind CSS
+- Leaflet for maps
+- Sonner for notifications
 
-##  Project Structure
+## Project Structure
 
 ```
-Aegis/
-├── backend/                    # Node.js Express backend
-│   ├── src/
-│   │   ├── api/               # API routes
-│   │   ├── config/            # Configuration files
-│   │   ├── middleware/        # Express middleware
-│   │   ├── modules/           # Feature modules
-│   │   │   ├── auth/          # Authentication
-│   │   │   ├── incidents/     # Incident management
-│   │   │   ├── alerts/        # Alert system
-│   │   │   ├── checkIns/      # Check-in system
-│   │   │   ├── sms/           # SMS notifications
-│   │   │   └── subscribers/   # Subscriber management
-│   │   ├── services/          # Business logic services
-│   │   └── utils/             # Utility functions
-│   ├── uploads/               # File uploads (temp storage)
-│   ├── server.js              # Server entry point
-│   └── package.json
-│
-├── frontend/                   # React frontend applications
-│   ├── Landing Page/          # Main landing page
-│   ├── ReportIncidents/       # Incident reporting interface
-│   ├── IncidentAdmin/         # Admin incident management
-│   ├── MissionAdmin/          # Mission coordination
-│   ├── LocationPopup/         # Location selection widget
-│   └── mapPublic/             # Public incident map
-│
-├── cards/                      # Disaster-specific info cards
-│   ├── tsunami/               # Tsunami information
-│   ├── Cyclone/               # Cyclone information
-│   ├── Heatwaves/             # Heatwave information
-│   ├── chemical/              # Chemical hazard info
-│   ├── nuclear/               # Nuclear emergency info
-│   ├── Landslide/             # Landslide information
-│   ├── urbanfloods/           # Urban flood info
-│   └── earthquake/            # Earthquake information
-│
-└── docs/                       # Documentation files
+Aegis-I/
+├─ backend/                # Express API, sockets, services
+│  ├─ src/modules/         # auth, incidents, alerts, checkIns, sms, subscribers
+│  ├─ src/services/        # cloudinary, sms, socket
+│  └─ server.js
+├─ frontend/unified/       # Single React frontend (landing, report, admin, map)
+└─ cards/                  # Disaster info cards (static)
 ```
 
-##  Prerequisites
+## Prerequisites
 
-Before you begin, ensure you have the following installed:
+- Node.js 18+
+- npm 9+
+- MongoDB 6+
+- PowerShell (for run-all script on Windows)
 
-- **Node.js** (v18.0.0 or higher) - [Download](https://nodejs.org/)
-- **npm** (v9.0.0 or higher) - Comes with Node.js
-- **MongoDB** (v6.0 or higher) - [Download](https://www.mongodb.com/try/download/community)
-- **Git** - [Download](https://git-scm.com/)
+Optional services: Twilio (SMS), Cloudinary (image hosting).
 
-### Required Services
-- **Cloudinary Account** - For image storage ([Sign up](https://cloudinary.com/))
-- **Twilio Account** - For SMS notifications ([Sign up](https://www.twilio.com/))
-- **MongoDB Atlas** (Optional) - For cloud database ([Sign up](https://www.mongodb.com/cloud/atlas))
+## Installation
 
-##  Installation
-
-### 1. Clone the Repository
-
+Clone and install
 ```powershell
 git clone https://github.com/RJScripts-24/Aegis.git
-cd Aegis
-```
+cd Aegis-I
 
-### 2. Backend Setup
-
-```powershell
-# Navigate to backend directory
+# Backend
 cd backend
-
-# Install dependencies
 npm install
-
-# Create environment file
 copy .env.example .env
+
+# Frontend (unified)
+cd ../frontend/unified
+npm install
 ```
 
-Edit the `.env` file with your credentials:
+## Configuration
 
-```env
-# Server Configuration
+Backend `.env` (minimal)
+```
 PORT=5000
 NODE_ENV=development
-
-# Database
 MONGODB_URI=mongodb://localhost:27017/aegis
+JWT_SECRET=change-me
+CORS_ORIGIN=http://localhost:5173
 
-# JWT Secret
-JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
-
-# Cloudinary Configuration
-CLOUDINARY_CLOUD_NAME=your-cloud-name
-CLOUDINARY_API_KEY=your-api-key
-CLOUDINARY_API_SECRET=your-api-secret
-
-# Twilio Configuration
-TWILIO_ACCOUNT_SID=your-twilio-account-sid
-TWILIO_AUTH_TOKEN=your-twilio-auth-token
-TWILIO_PHONE_NUMBER=+1234567890
-
-# CORS
-CORS_ORIGIN=http://localhost:5173,http://localhost:5174,http://localhost:5175
+# Optional
+# CLOUDINARY_CLOUD_NAME=...
+# CLOUDINARY_API_KEY=...
+# CLOUDINARY_API_SECRET=...
+# TWILIO_ACCOUNT_SID=...
+# TWILIO_AUTH_TOKEN=...
+# TWILIO_PHONE_NUMBER=...
 ```
 
-### 3. Frontend Setup
-
-Install dependencies for each frontend application:
-
-```powershell
-# Landing Page
-cd "frontend/Landing Page"
-npm install
-
-# Report Incidents
-cd "../ReportIncidents"
-npm install
-npm install sonner
-
-# Incident Admin
-cd "../IncidentAdmin"
-npm install
-npm install socket.io-client sonner
-
-# Mission Admin
-cd "../MissionAdmin"
-npm install
-npm install socket.io-client sonner
-
-# Public Map
-cd "../mapPublic"
-npm install
-npm install socket.io-client sonner
-
-# Location Popup
-cd "../LocationPopup"
-npm install
+Frontend `.env` (frontend/unified)
 ```
-
-### 4. Install Disaster Card Dependencies
-
-```powershell
-# Tsunami
-cd "../../cards/tsunami"
-npm install
-
-# Cyclone
-cd "../Cyclone"
-npm install
-
-# Continue for other disaster cards...
-```
-
-##  Configuration
-
-### Backend Configuration
-
-Create `backend/.env` file with the following variables:
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `PORT` | Server port (default: 5000) | ✅ |
-| `NODE_ENV` | Environment (development/production) | ✅ |
-| `MONGODB_URI` | MongoDB connection string | ✅ |
-| `JWT_SECRET` | Secret key for JWT tokens | ✅ |
-| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | ✅ |
-| `CLOUDINARY_API_KEY` | Cloudinary API key | ✅ |
-| `CLOUDINARY_API_SECRET` | Cloudinary API secret | ✅ |
-| `TWILIO_ACCOUNT_SID` | Twilio account SID | ✅ |
-| `TWILIO_AUTH_TOKEN` | Twilio auth token | ✅ |
-| `TWILIO_PHONE_NUMBER` | Twilio phone number | ✅ |
-| `CORS_ORIGIN` | Allowed CORS origins | ✅ |
-
-### Frontend Configuration
-
-Each frontend app may require a `.env` file pointing to the backend:
-
-```env
 VITE_API_URL=http://localhost:5000
 VITE_SOCKET_URL=http://localhost:5000
 ```
 
-##  Running the Application
+## Running the Application
 
-### Development Mode
-
-#### Start Backend Server
-
+PowerShell one-liner (Windows)
 ```powershell
+.\run-all.ps1
+```
+
+Manual (two terminals)
+```powershell
+# Terminal 1 - backend
 cd backend
 npm run dev
-```
-Server will run on `http://localhost:5000`
 
-#### Start Frontend Applications
-
-Open separate terminal windows for each:
-
-```powershell
-# Terminal 1: Landing Page
-cd "frontend/Landing Page"
-npm run dev
-
-# Terminal 2: Report Incidents (Main interface)
-cd "frontend/ReportIncidents"
-npm run dev
-
-# Terminal 3: Incident Admin
-cd "frontend/IncidentAdmin"
-npm run dev
-
-# Terminal 4: Mission Admin
-cd "frontend/MissionAdmin"
-npm run dev
-
-# Terminal 5: Public Map
-cd "frontend/mapPublic"
+# Terminal 2 - frontend unified
+cd frontend/unified
 npm run dev
 ```
 
-### Production Build
+URLs
+- Frontend unified: http://localhost:5173
+- Backend API: http://localhost:5000
 
-```powershell
-# Build all frontend applications
-cd "frontend/Landing Page" && npm run build
-cd "../ReportIncidents" && npm run build
-cd "../IncidentAdmin" && npm run build
-cd "../MissionAdmin" && npm run build
-cd "../mapPublic" && npm run build
+## API Overview
 
-# Start backend in production
-cd ../../backend
-npm start
-```
+Base URL: http://localhost:5000/api
 
-##  Modules
+Incidents
+- GET /incidents                 # Public incidents (Acknowledged/Resolved)
+- GET /incidents/admin           # All incidents (admin view)
+- POST /incidents                # Create incident (multipart form-data)
+- PUT /incidents/:id             # Update status (Pending, Acknowledged, Resolved)
 
-###  Authentication (`/api/auth`)
-- User registration and login
-- JWT-based authentication
-- Role-based access control (Admin, User)
+Alerts
+- GET /alerts/broadcast          # Active broadcast alerts
+- POST /alerts/broadcast         # Create broadcast alert
+- PUT /alerts/:id/deactivate     # End/deactivate an alert
 
-###  Incidents (`/api/incidents`)
-- Report new incidents with photos and location
-- View all incidents
-- Update incident status
-- Filter by disaster type and severity
+Auth
+- POST /auth/register
+- POST /auth/login
 
-###  Alerts (`/api/alerts`)
-- Create and broadcast emergency alerts
-- Target specific regions or disaster types
-- SMS notifications to subscribers
-- Real-time web notifications via Socket.io
+## Notes
 
-###  Check-ins (`/api/check-ins`)
-- Safety check-in for citizens
-- Location-based check-ins
-- Status tracking (Safe, Need Help, Emergency)
+- Twilio credentials are optional; without them, SMS will log warnings but the app still runs.
+- Alert pins disappear automatically once deactivated via the admin end-alert action.
+- Live maps use browser geolocation; ensure location permissions are granted for full functionality.
 
-###  Subscribers (`/api/subscribers`)
-- Subscribe to emergency alerts
-- Manage notification preferences
-- Phone number verification
-
-###  SMS (`/api/sms`)
-- Send SMS notifications
-- Bulk SMS to subscribers
-- Delivery status tracking
-
-##  API Documentation
-
-### Base URL
-```
-http://localhost:5000/api
-```
-
-### Health Check
-```http
-GET /health
-```
-
-### Authentication Endpoints
-
-#### Register
-```http
-POST /api/auth/register
-Content-Type: application/json
-
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "securepassword",
-  "phone": "+1234567890"
-}
-```
-
-#### Login
-```http
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "email": "john@example.com",
-  "password": "securepassword"
-}
-```
-
-### Incident Endpoints
-
-#### Create Incident
-```http
-POST /api/incidents
-Authorization: Bearer <token>
-Content-Type: multipart/form-data
-
-{
-  "disasterType": "earthquake",
-  "description": "Building collapse reported",
-  "severity": "high",
-  "location": {
-    "latitude": 28.6139,
-    "longitude": 77.2090,
-    "address": "New Delhi, India"
-  },
-  "photo": <file>
-}
-```
-
-#### Get All Incidents
-```http
-GET /api/incidents
-Authorization: Bearer <token>
-```
 
 #### Get Incident by ID
 ```http

@@ -1,5 +1,5 @@
 const express = require('express');
-const { getAlerts, createAlert, createBroadcastAlert, getBroadcastAlerts } = require('./alert.controller');
+const { getAlerts, createAlert, createBroadcastAlert, getBroadcastAlerts, deactivateAlert } = require('./alert.controller');
 const { protect } = require('../../middleware/auth'); // Admin JWT auth middleware
 
 const router = express.Router();
@@ -25,6 +25,10 @@ router.post('/', protect, createAlert);
 // Creates a broadcast alert (sent to everyone)
 // TODO: Add back protect middleware for production
 router.post('/broadcast', createBroadcastAlert); // Temporarily removed 'protect' for testing
+
+// PUT /api/alerts/:id/deactivate
+// Deactivates an alert
+router.put('/:id/deactivate', deactivateAlert);
 
 
 module.exports = router;

@@ -21,11 +21,32 @@ interface Incident {
   updatedAt: string;
 }
 
+interface Alert {
+  _id: string;
+  title: string;
+  message: string;
+  type: 'emergency' | 'warning' | 'info' | 'advisory';
+  isBroadcast: boolean;
+  isActive: boolean;
+  createdAt: string;
+}
+
 export default function App() {
   const [incidents, setIncidents] = useState<Incident[]>([]);
   const [selectedIncident, setSelectedIncident] = useState<Incident | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+<<<<<<< Updated upstream
+=======
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [showActiveAlerts, setShowActiveAlerts] = useState(false);
+  const [activeAlerts, setActiveAlerts] = useState<Alert[]>([]);
+  const [alertData, setAlertData] = useState({
+    title: '',
+    message: '',
+    type: 'warning' as 'emergency' | 'warning' | 'info' | 'advisory'
+  });
+>>>>>>> Stashed changes
 
   // Fetch incidents from backend
   useEffect(() => {
@@ -78,6 +99,31 @@ export default function App() {
     const interval = setInterval(fetchIncidents, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  // Fetch active alerts
+  const fetchActiveAlerts = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/alerts/broadcast', {
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setActiveAlerts(data.data || []);
+      }
+    } catch (error) {
+      console.error('❌ Error fetching alerts:', error);
+    }
+  };
+
+  // Fetch alerts when modal opens
+  useEffect(() => {
+    if (showActiveAlerts) {
+      fetchActiveAlerts();
+      const interval = setInterval(fetchActiveAlerts, 5000);
+      return () => clearInterval(interval);
+    }
+  }, [showActiveAlerts]);
 
   // Format time ago
   const getTimeAgo = (date: string) => {
@@ -148,6 +194,68 @@ export default function App() {
     }
   };
 
+<<<<<<< Updated upstream
+=======
+  // Send broadcast alert
+  const sendAlert = async () => {
+    if (!alertData.title || !alertData.message) {
+      alert('Please fill in title and message');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5000/api/alerts/broadcast', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: alertData.title,
+          message: alertData.message,
+          type: alertData.type,
+          isBroadcast: true
+        }),
+      });
+
+      if (response.ok) {
+        console.log('✅ Alert sent successfully');
+        setShowAlertModal(false);
+        setAlertData({ title: '', message: '', type: 'warning' });
+        alert('Alert broadcasted successfully!');
+      } else {
+        console.error('❌ Failed to send alert');
+        alert('Failed to send alert');
+      }
+    } catch (error) {
+      console.error('❌ Error sending alert:', error);
+      alert('Error sending alert');
+    }
+  };
+
+  // End an active alert
+  const endAlert = async (alertId: string) => {
+    if (!confirm('Are you sure you want to end this alert?')) return;
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/alerts/${alertId}/deactivate`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' }
+      });
+
+      if (response.ok) {
+        console.log('✅ Alert ended successfully');
+        fetchActiveAlerts();
+        alert('Alert ended successfully!');
+      } else {
+        alert('Failed to end alert');
+      }
+    } catch (error) {
+      console.error('❌ Error ending alert:', error);
+      alert('Error ending alert');
+    }
+  };
+
+>>>>>>> Stashed changes
   // Get status color and styling
   const getStatusStyle = (status: string) => {
     switch (status) {
@@ -213,6 +321,7 @@ export default function App() {
           <h1 className="text-[#7ee5ff] tracking-[0.4px] text-[36px] leading-[36px] font-medium">
             Incident #{incidentIndex} - Detail View
           </h1>
+<<<<<<< Updated upstream
           {incidents.length > 1 && (
             <select
               value={incident._id}
@@ -221,6 +330,34 @@ export default function App() {
                 setSelectedIncident(selected || null);
               }}
               className="bg-[#2a2a2a] text-white px-4 py-2 rounded-lg border border-[#3a3a3a]"
+=======
+          <div className="flex items-center gap-4">
+            {incidents.length > 1 && (
+              <select
+                value={incident._id}
+                onChange={(e) => {
+                  const selected = incidents.find(inc => inc._id === e.target.value);
+                  setSelectedIncident(selected || null);
+                }}
+                className="bg-[#2a2a2a] text-white px-4 py-2 rounded-lg border border-[#3a3a3a]"
+              >
+                {incidents.map((inc, idx) => (
+                  <option key={inc._id} value={inc._id}>
+                    Incident #{idx + 1} - {inc.type.charAt(0).toUpperCase() + inc.type.slice(1)}
+                  </option>
+                ))}
+              </select>
+            )}
+            <button
+              onClick={() => setShowActiveAlerts(true)}
+              className="bg-[#8B5CF6] hover:bg-[#7c3aed] text-white px-6 py-2 rounded-lg transition-colors duration-200 shadow-lg"
+            >
+              📋 Active Alerts ({activeAlerts.length})
+            </button>
+            <button
+              onClick={() => setShowAlertModal(true)}
+              className="bg-[#FF1B5E] hover:bg-[#e01650] text-white px-6 py-2 rounded-lg transition-colors duration-200 shadow-lg"
+>>>>>>> Stashed changes
             >
               {incidents.map((inc, idx) => (
                 <option key={inc._id} value={inc._id}>

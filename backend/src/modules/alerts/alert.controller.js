@@ -84,9 +84,29 @@ const getBroadcastAlerts = asyncHandler(async (req, res) => {
   );
 });
 
+/**
+ * @desc    Deactivate an alert
+ * @route   PUT /api/alerts/:id/deactivate
+ * @access  Admin
+ */
+const deactivateAlert = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  if (!id) {
+    throw new ApiError(400, 'Alert ID is required');
+  }
+
+  const updatedAlert = await alertService.deactivateAlert(id);
+
+  return res.status(200).json(
+    new ApiResponse(200, updatedAlert, 'Alert deactivated successfully')
+  );
+});
+
 module.exports = {
   getAlerts,
   createAlert,
   createBroadcastAlert,
   getBroadcastAlerts,
+  deactivateAlert,
 };
