@@ -255,6 +255,9 @@ export default function App() {
     }
   };
 
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   // Get status color and styling
   const getStatusStyle = (status: string) => {
